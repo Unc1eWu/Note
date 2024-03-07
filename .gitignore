@@ -5,3 +5,4 @@
 # mac产生的dsstore
 .DS_Store
 /.history
+.jar
