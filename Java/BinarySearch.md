@@ -14,19 +14,44 @@
 * 终止条件：重复以上步骤直到找到目标元素或确定目标元素不存在。如果搜索范围为空（左边界大于右边界），则目标元素不存在于数组或列表中。
 
 ```java
-    public static int binarySearch(int[] nums, int target) {
-        int left = 0, right = nums.length - 1;
-        while (left <= right) {
+    public static int lowerBound(int[] nums, int target) {
+        int left = 0, right = nums.length - 1; // 闭区间 [left, right]
+        while (left <= right) { //区间不为空
             int mid = (left + right) / 2;
-            if (mid == target) {
-                return mid;
-            } else if (mid > target) {
-                right = mid - 1;
+            if(nums[mid] < target) {
+                left = mid + 1; // [mid + 1, right]
             } else {
-                left = mid + 1;
+                right = mid - 1; // [left, mid - 1]
             }
         }
-        return -1;
+        return left;
+    }
+    public static int lowerBound2(int[] nums, int target) {
+        int left = 0, right = nums.length; // 左闭右开 [left, right)
+        while (left < right) { // 区间不为空
+            int mid = (left + right) / 2;
+            if(nums[mid] < target) {
+                left = mid + 1; // [mid + 1, right)
+            } else {
+                right = mid; // [left, mid)
+            }
+        }
+        return left;
+    }
+
+    public static int lowerBound3(int[] nums, int target) {
+        int left = -1, right = nums.length; // 开区间 (left, right)
+        while (left + 1 < right) { // 区间不为空
+            int mid = (left + right) / 2;
+            if(nums[mid] < target) {
+                left = mid; // (mid, right)
+            } else {
+                right = mid; // (left, mid)
+            }
+        }
+        return right;
     }
 
 ```
+
+> [二分查找红蓝染色法](https://www.bilibili.com/video/BV1AP41137w7/?vd_source=03c1eabcf2fb00d437570efda606f6f3)
