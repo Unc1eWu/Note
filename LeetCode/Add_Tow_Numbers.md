@@ -21,3 +21,42 @@ Example 3:
 **Output**: [8,9,9,9,0,0,0,1]
 
 ## Solution
+
+思路总体上就是使用一个空表头方便后续返回相加后的list，然后使用carry记录进位，若相加的两个链表长度不一样，将较短的那条链表缺失的部分补0再进行相加。若遍历完成后carry值为1在新链表的最前方添加新节点1.
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode pre = new ListNode(0);
+        ListNode cur = pre;
+        int carry = 0;
+        while (l1 != null || l2 != null) {
+            int x = (l1 != null) ? l1.val : 0;
+            int y = (l2 != null) ? l2.val : 0;
+            int sum = x + y + carry;
+            carry = sum / 10;
+            sum = sum % 10;
+            cur.next = new ListNode(sum);
+            cur = cur.next;
+
+            if(l1.next != null) l1 = l1.next;
+            if(l2.next != null) l2 = l2.next;
+        }
+        if (carry == 1) {
+            cur.next = new ListNode(carry);
+        }
+        return pre.next;
+    }
+}
+
+```
