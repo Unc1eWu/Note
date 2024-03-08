@@ -3,12 +3,14 @@ package algorithms;
 // import java.util.logging.Logger;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import algorithms.Linked_List.LinkedList;
 import algorithms.Linked_List.List;
 
 public class LinkedListTest {
-    // private final Logger logger = LoggerFactory.getLogger(LinkedListTest.class);
+    private final Logger logger = LoggerFactory.getLogger(LinkedListTest.class);
     
     @Test
     public void test_linked_list() {
