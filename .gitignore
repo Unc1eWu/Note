@@ -18,3 +18,6 @@
 *.zip
 *.tar.gz
 *.rar
+.vscode/extensions.json
+DS/data_structures/src/test/java/algorithms/Note.code-workspace
+DS/data_structures/target/test-classes/algorithms/Note.code-workspace
