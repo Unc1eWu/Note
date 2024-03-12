@@ -2,6 +2,7 @@ package algorithms.Array_List;
 
 import java.util.Arrays;
 
+@SuppressWarnings("unchecked")
 public class ArrayList<E> implements List<E> {
     /* 
      * 默认初始化空间
@@ -50,7 +51,7 @@ public class ArrayList<E> implements List<E> {
 
         return true;
     }
-
+    
     @Override
     public E remove(int index) {
         E oldValue = (E)elementData[index];

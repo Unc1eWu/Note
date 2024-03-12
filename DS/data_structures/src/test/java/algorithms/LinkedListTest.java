@@ -10,6 +10,7 @@ import algorithms.Linked_List.LinkedList;
 import algorithms.Linked_List.List;
 
 public class LinkedListTest {
+    @SuppressWarnings("unused")
     private final Logger logger = LoggerFactory.getLogger(LinkedListTest.class);
     
     @Test
