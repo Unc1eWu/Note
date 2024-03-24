@@ -2,6 +2,8 @@
 !.gitignore
 !.gitsubmodules
 
+Leetcode/Assets
+
 # mac产生的dsstore
 .DS_Store
 
