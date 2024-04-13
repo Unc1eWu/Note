@@ -1,5 +1,7 @@
 # Git 基础操作
 
+> [Git教程](https://www.bookstack.cn/read/git-tutorial/docs-commands-git-branch.md)
+
 git init 将当前目录初始化为git仓库.
 若想要将当前目录中的文件添加给git管理则需要git add [filename] 或者 git add . 添加当前目录中的所有文件
 然后git commit -m "message"
