@@ -2,12 +2,15 @@
 !.gitignore
 !.gitsubmodules
 
+# markdown文件中图片所在的文件夹
 *Assets
 
 # mac产生的dsstore
 .DS_Store
 
+# vs code 本身及插件产生的文件
 *.history
+*.code-workspace
 
 # Compiled class file
 *.class
