@@ -69,4 +69,3 @@ private int[] nextTable(String s) {
     return next;
 }
 ```
-
