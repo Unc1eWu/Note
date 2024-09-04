@@ -4,6 +4,7 @@
 
 # markdown文件中图片所在的文件夹
 *Assets
+*img
 
 # mac产生的dsstore
 .DS_Store
