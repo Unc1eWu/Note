@@ -1,6 +1,7 @@
 # add your custom gitignore here:
 !.gitignore
 !.gitsubmodules
+*vue-project
 
 # markdown文件中图片所在的文件夹
 Assets
