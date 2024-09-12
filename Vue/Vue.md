@@ -1,5 +1,50 @@
 # Vue
 
+- [Vue](#vue)
+  - [什么是Vue](#什么是vue)
+    - [Vue的核心功能](#vue的核心功能)
+    - [单文件组件](#单文件组件)
+  - [onMounted](#onmounted)
+  - [创建一个Vue应用](#创建一个vue应用)
+    - [安装依赖并启动开发服务器](#安装依赖并启动开发服务器)
+    - [将应用发布到生产环境](#将应用发布到生产环境)
+  - [创建应用](#创建应用)
+    - [应用实列](#应用实列)
+    - [挂载应用](#挂载应用)
+    - [DOM中根组件的模板](#dom中根组件的模板)
+  - [模板语法](#模板语法)
+    - [文本插值](#文本插值)
+    - [Attribute绑定](#attribute绑定)
+    - [简写与同名简写](#简写与同名简写)
+    - [布尔型Attribute](#布尔型attribute)
+    - [动态绑定多个值](#动态绑定多个值)
+    - [使用JavaScript表达式](#使用javascript表达式)
+    - [参数Arguments](#参数arguments)
+  - [响应式基础](#响应式基础)
+    - [声明式响应基础](#声明式响应基础)
+  - [\<script setup\>](#script-setup)
+    - [为什么要使用ref？](#为什么要使用ref)
+    - [深层响应性](#深层响应性)
+    - [DOM更新时机](#dom更新时机)
+    - [reactive()](#reactive)
+    - [Reactive()的局限性](#reactive的局限性)
+    - [数组和集合的注意事项](#数组和集合的注意事项)
+  - [计算属性](#计算属性)
+    - [计算属性缓存vs方法](#计算属性缓存vs方法)
+  - [类与样式绑定](#类与样式绑定)
+  - [条件渲染](#条件渲染)
+    - [v-if](#v-if)
+    - [v-else](#v-else)
+    - [template上的v-if](#template上的v-if)
+    - [v-show](#v-show)
+  - [列表渲染](#列表渲染)
+    - [v-for](#v-for)
+    - [v-for 与对象](#v-for-与对象)
+    - [\<template\>上的v-for](#template上的v-for)
+    - [通过Key管理状态](#通过key管理状态)
+    - [数组变化侦测](#数组变化侦测)
+    - [展示过滤或排序后的结果](#展示过滤或排序后的结果)
+
 ## 什么是Vue
 
 Vue是一款构建用户界面的JavaScript框架，基于标准JavaSc，HTML和CSS构建，并提供了一套声明式、组件化的编程模型。
@@ -348,3 +393,245 @@ const state = reactive({ count:0})
 ```
 
 响应式对象是 JavaScript 代理，其行为就和普通对象一样。不同的是，Vue 能够拦截对响应式对象所有属性的访问和修改，以便进行依赖追踪和触发更新。
+需要注意的是reactive()返回的是一个原始对象的proxy，它和原始对象是不对等的
+
+```js
+const raw = {}
+const proxy = reactive(raw)
+
+// 代理对象和原对象不是完全相等的
+console.log(proxy === raw) // false
+```
+
+只有代理对象是响应式的，更改原始对象不会触发更新。因此，使用Vue的响应式系统的最佳实践是仅使用你声明对象的代理版本。
+
+为保证访问代理的一致性，对同一个原始对象调用reactive()总是会返回同样的代理对象，而对一个已存在的代理对象调用reactive()会返回其本身
+
+```js
+console.log(reactive(raw) === proxy) // true
+
+console.log(reactive(proxy) === proxy) // true
+```
+
+这个规则对深层嵌套的对象也适用
+
+```js
+const proxy = reactive({})
+
+const raw = {}
+proxy.nested = raw
+
+console.log(proxy.nested === raw) // false
+```
+
+### Reactive()的局限性
+
+1. 有限的值类型：只能用于对象类型。不能持有string, number, boolean这样的原始类型
+2. 不能替换整个对象: Vue的响应式跟踪是通过属性访问完成的，因此我们必须始终保持对响应式对象的引用。这意味着我们不能轻易替换响应式对象，这样的话与第一个引用的响应性连接将丢失
+3. 对解构操作不友好: 当我们将响应式对象的原始类型属性解构为本地变量时，或者将该属性传递给函数时，我们将丢失响应性连接
+
+### 数组和集合的注意事项
+
+与reactive对象不同的是，当ref作为响应式数组或原生集合类型（如Map）中元素被访问时，它不会被解包：
+
+```js
+const books = reactive([ref('Vue 3 Guide')])
+console.log(books[0].value)
+
+const map = reactive(new Map([['count', ref(0)]]))
+console.log(map.get('count').value)
+```
+
+## 计算属性
+
+模板中的表达式虽然方便，但也只能用来做简单的操作。如果在模板中写太多逻辑，会让模板变得臃肿，难以维护。比如说，我们有这样一个包含嵌套数组的对象：
+
+```js
+const author = reactive({
+    name: 'John Doe',
+    books: [
+        'Vue 2 - Advanced Guide',
+        'Vue 3 - Basic Guide',
+        'Vue 4 - The Mystery'
+    ]
+})
+```
+
+更重要的是，如果在模板中需要不止一次这样的计算，我们可不想将这样的代码在模板里重复好多遍。
+
+因此我们推荐使用计算属性来描述依赖响应式状态的复杂逻辑。这是重构后的示例：
+
+```vue
+<script setup>
+import { reactive, computed } form 'vue'
+
+const author = reactive({
+    name: 'John Doe',
+    books: [
+        'Vue 2 - Advanced Guide',
+        'Vue 3 - Basic Guide',
+        'Vue 4 - The Mystery'
+    ]
+})
+
+const publishedBookMessage = computed(() => {
+    return author.books.length > 0 ? 'Yes' : 'No'
+})
+</script>
+<template> 
+    <p>Has published books:</p>
+    <span> {{ publishedBookMessage }} </span>
+</template>
+```
+
+### 计算属性缓存vs方法
+
+如果调用函数也会获得和计算属性相同的结果，若我们将同样的函数定义为一个方法而不是计算属性，两种方式在结果上确实是完全相同的，然而，不同之处在于计算属性值会基于其响应式依赖被缓存。一个计算属性仅会在其响应式依赖更新时才重新计算。这意味着只要 author.books 不改变，无论多少次访问 publishedBooksMessage 都会立即返回先前的计算结果，而不用重复执行 getter 函数。
+
+## 类与样式绑定
+
+数据绑定的一个常见需求场景是操纵元素的 CSS class 列表和内联样式。因为 class 和 style 都是 attribute，我们可以和其他 attribute 一样使用 v-bind 将它们和动态的字符串绑定。但是，在处理比较复杂的绑定时，通过拼接生成字符串是麻烦且易出错的。因此，Vue 专门为 class 和 style 的 v-bind 用法提供了特殊的功能增强。除了字符串外，表达式的值也可以是对象或数组。
+
+## 条件渲染
+
+### v-if
+
+v-if 指令用于条件性地渲染一块内容。这块内容只会在指令的表达式返回真值时才被渲染。
+
+`<h1 v-if="awesome"> Vue is awesome!</h1>`
+
+### v-else
+
+你也可以使用v-else为v-if添加一个else区块
+
+```template
+<button @click="awesome = !awesome">Toggle</button>
+
+<h1 v-if="awesome">Vue is awesome!</h1>
+<h1 v-else>Oh no</h1>
+```
+
+一个 v-else 元素必须跟在一个 v-if 或者 v-else-if 元素后面，否则它将不会被识别。
+
+### template上的v-if
+
+因为 v-if 是一个指令，他必须依附于某个元素。但如果我们想要切换不止一个元素呢？在这种情况下我们可以在一个 <template\> 元素上使用 v-if，这只是一个不可见的包装器元素，最后渲染的结果并不会包含这个 <template\> 元素。
+
+### v-show
+
+另一个可以用来按条件显示一个元素的指令是 v-show。其用法基本一样：
+
+`<h1 v-show="ok"> hello </h1>`
+
+不同之处在于 v-show 会在 DOM 渲染中保留该元素；v-show 仅切换了该元素上名为 display 的 CSS 属性。
+
+## 列表渲染
+
+### v-for
+
+我们可以使用 v-for 指令基于一个数组来渲染一个列表。v-for 指令的值需要使用 item in items 形式的特殊语法，其中 items 是源数据的数组，而 item 是迭代项的别名：
+
+```js
+const items = ref([{ message : 'Foo'}, { message: 'Bar' }])
+```
+
+```vue
+<li v-for='item in items'>
+   {{ item.message }}
+</li>
+```
+
+对于多层嵌套的 v-for，作用域的工作方式和函数的作用域很类似。每个 v-for 作用域都可以访问到父级作用域：
+
+```vue
+<li v-for="item in items">
+    <span v-for="childItem in item.children">
+        {{item.message}} {{childItem}}
+    </span>
+</li>
+```
+
+### v-for 与对象
+
+你也可以使用 v-for 来遍历一个对象的所有属性。遍历的顺序会基于对该对象调用 Object.values() 的返回值来决定。
+
+```js
+const myObject = reactive({
+    title : 'How to do lists in Vue',
+    author : 'Jane Doe',
+    publishedAt : '2016-04-10'
+})
+```
+
+```vue
+<li v-for="value in myObject">
+    {{ value }}
+</li>
+```
+
+### <template\>上的v-for
+
+与模板上的 v-if 类似，你也可以在 <template\> 标签上使用 v-for 来渲染一个包含多个元素的块。例如:
+
+```vue
+<ul>
+    <template v-for="item in items">
+        <li>{{ item.msg }}</li>
+        <li class="divider" role="presentation"</li>
+    </template>
+</ul>
+```
+
+### 通过Key管理状态
+
+Vue 默认按照“就地更新”的策略来更新通过 v-for 渲染的元素列表。当数据项的顺序改变时，Vue 不会随之移动 DOM 元素的顺序，而是就地更新每个元素，确保它们在原本指定的索引位置上渲染。
+
+默认模式是高效的，但只适用于列表渲染输出的结果不依赖子组件或者临时DOM状态
+
+为了给 Vue 一个提示，以便它可以跟踪每个节点的标识，从而重用和重新排序现有的元素，你需要为每个元素对应的块提供一个唯一的 key attribute：
+
+当你使用 <template v-for、> 时，key 应该被放置在这个 <template、> 容器上：
+
+```vue
+<div v-for="item in items" :key="item.id">
+    <!-- 内容 -->
+</div>
+
+<template v-for="todo in todos" :key="todo.name">
+    <li>{{ todo.name }}</li>
+</template>
+```
+
+推荐在任何可行的时候为 v-for 提供一个 key attribute，除非所迭代的 DOM 内容非常简单 (例如：不包含组件或有状态的 DOM 元素)，或者你想有意采用默认行为来提高性能。
+
+key 绑定的值期望是一个基础类型的值，例如字符串或 number 类型。不要用对象作为 v-for 的 key。关于 key attribute 的更多用途细节，请参阅 key API 文档。
+
+### 数组变化侦测
+
+Vue 能够侦听响应式数组的变更方法，并在它们被调用时触发相关的更新。这些变更方法包括：
+
+- push()
+- pop()
+- shift()
+- unshift()
+- splice()
+- sort()
+- reverse()
+
+### 展示过滤或排序后的结果
+
+有时，我们希望显示数组经过过滤或排序后的内容，而不实际变更或重置原始数据。在这种情况下，你可以创建返回已过滤或已排序数组的计算属性。
+
+```js
+const numbers = ref([1, 2, 3, 4, 5])
+
+const evenNumbers = computed(() => {
+    return numbers.value.filter((n) => n % 2 === 0)
+})
+```
+
+```vue
+<li v-for="n in evenNumbers">{{ n }}</li>
+```
+
+在计算属性中使用 reverse() 和 sort() 的时候务必小心！这两个方法将变更原始数组，计算函数中不应该这么做。请在调用这些方法之前创建一个原数组的副本。
