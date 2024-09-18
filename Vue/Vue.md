@@ -44,6 +44,17 @@
     - [通过Key管理状态](#通过key管理状态)
     - [数组变化侦测](#数组变化侦测)
     - [展示过滤或排序后的结果](#展示过滤或排序后的结果)
+  - [事件处理](#事件处理)
+    - [监听事件](#监听事件)
+    - [内联事件处理器](#内联事件处理器)
+    - [方法事件处理器](#方法事件处理器)
+    - [在内联处理器中调用方法](#在内联处理器中调用方法)
+    - [事件修饰符](#事件修饰符)
+  - [表单输入绑定](#表单输入绑定)
+    - [基本用法](#基本用法)
+      - [文本](#文本)
+      - [多行文本](#多行文本)
+      - [复选框](#复选框)
 
 ## 什么是Vue
 
@@ -461,7 +472,7 @@ const author = reactive({
 
 因此我们推荐使用计算属性来描述依赖响应式状态的复杂逻辑。这是重构后的示例：
 
-```vue
+```js
 <script setup>
 import { reactive, computed } form 'vue'
 
@@ -477,6 +488,7 @@ const author = reactive({
 const publishedBookMessage = computed(() => {
     return author.books.length > 0 ? 'Yes' : 'No'
 })
+
 </script>
 <template> 
     <p>Has published books:</p>
@@ -635,3 +647,94 @@ const evenNumbers = computed(() => {
 ```
 
 在计算属性中使用 reverse() 和 sort() 的时候务必小心！这两个方法将变更原始数组，计算函数中不应该这么做。请在调用这些方法之前创建一个原数组的副本。
+
+## 事件处理
+
+### 监听事件
+
+我们可以使用v-on指令（简写为@）来监听DOM事件，并在事件触发时执行对应的JavaScript。用法：`v-on:click="handler" 或 @click="handler"`
+事件处理器的值可以是：
+
+1. 内联事件处理器：事件被触发时执行内联JavaScript语句
+2. 方法事件处理器：一个指向组件上定义的方法的属性名或路径
+
+### 内联事件处理器
+
+```js
+const count = ref(0)
+
+<button @click="count++">Add 1</button>
+<p>Count is {{ count }}</p>
+```
+
+### 方法事件处理器
+
+当事件处理器的逻辑越来越复杂，内联代码的方式变得不够灵活，因此v-on可以接受一个方法名或对某个方法的调用
+
+```js
+const name = ref('Vue.js')
+
+function greet(event) {
+    alert('Hello ${name.value}!')
+    if (event) {
+        alert(event.target.getName)
+    }
+}
+
+<button @click="greet">Greet</button>
+```
+
+### 在内联处理器中调用方法
+
+除了直接绑定方法名外还可以在内联事件处理器中调用方法。这允许我们传入自定义参数以替代原生事件：
+
+```js
+function say(message) {
+    alert(message)
+}
+
+<button @click="say('hello')">Say hello</button>
+<button @click="say('byt')">Say bye</button>
+```
+
+### 事件修饰符
+
+在处理事件时调用event.preventDefault()或event.stopPropagation()是很常见的。尽管我们可以直接在方法内调用，但如果使方法更关注于数据的处理而不是DOM的事件细节会更好。
+
+## 表单输入绑定
+
+在前端处理表单时，我们常常需要将表单输入框的内容同步给 JavaScript 中相应的变量。手动连接值绑定和更改事件监听器可能会很麻烦：v-model指令帮我们简化了这一步骤
+
+```c
+<input
+    :value="text"
+    @input="event => text = evnet.target.value">
+
+<input v-model="text">
+```
+
+### 基本用法
+
+#### 文本
+
+```vue
+<p> Message is {{ message }} </p>
+<input v-model="message" placeholder="edit me" />
+```
+
+#### 多行文本
+
+```vue
+<span>Multiline message is:</span>
+<p style="white-space :pre-line;">{{ message }}</p>
+<textarea v-model="message" placeholder="add multiple lines"></textarea>
+```
+
+#### 复选框
+
+单一的复选框，绑定布尔类型值：
+
+```vue
+<input type="checkbox" id="checkbox" v-model="checked" />
+<label for="checkbox">{{ checked }}</label>
+```
