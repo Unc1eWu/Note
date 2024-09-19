@@ -55,6 +55,17 @@
       - [文本](#文本)
       - [多行文本](#多行文本)
       - [复选框](#复选框)
+      - [单选按钮](#单选按钮)
+      - [选择器](#选择器)
+  - [生命周期钩子](#生命周期钩子)
+    - [注册周期钩子](#注册周期钩子)
+  - [侦听器](#侦听器)
+    - [基本示例](#基本示例)
+    - [侦听的数据源类型](#侦听的数据源类型)
+  - [模板引用](#模板引用)
+    - [访问模板引用](#访问模板引用)
+    - [函数模板引用](#函数模板引用)
+    - [组件上的ref](#组件上的ref)
 
 ## 什么是Vue
 
@@ -738,3 +749,190 @@ function say(message) {
 <input type="checkbox" id="checkbox" v-model="checked" />
 <label for="checkbox">{{ checked }}</label>
 ```
+
+```vue
+const checkedNames = ref([])
+
+<div>Checked names: {{ checkedNames }}</div>
+<input type="checkbox" id="jack" value="jack" v-model="checkedNames" />
+<label for="jack">Jack</label>
+
+<input type="checkbox" id="john" value="john" v-model="checkedNames" />
+<label for="john">John</label>
+```
+
+在这个例子中，checkedNames数组将始终包含所有被选中的框的值。
+
+#### 单选按钮
+
+```vue
+<div>Picked: {{ picked }}</div>
+
+<input type="radio" id="one" value="One" v-model="picked" />
+<label for="one">One</label>
+
+<input type="radio" id="two" value="Two" v-model="picked" />
+<label for="two">Two</label>
+```
+
+#### 选择器
+
+单个选择器的示例如下：
+
+```vue
+<div>Selected: {{selected}}</div>
+
+<select v-model="selected">
+    <option disabled value="">Please select one</option>
+    <option>A</option>
+    <option>B</option>
+    <option>C</option>
+</select>
+```
+
+## 生命周期钩子
+
+每个 Vue 组件实例在创建时都需要经历一系列的初始化步骤，比如设置好数据侦听，编译模板，挂载实例到 DOM，以及在数据改变时更新 DOM。在此过程中，它也会运行被称为生命周期钩子的函数，让开发者有机会在特定阶段运行自己的代码。
+
+### 注册周期钩子
+
+举例来说，onMounted 钩子可以用来在组件完成初始渲染并创建 DOM 节点后运行代码：
+
+```vue
+<script setup>
+    import { onMounted } from 'vue'
+
+    onMounted(() => {
+        console.log(`the component is now mounted.`)
+    })
+</script>
+```
+
+![Vue生命周期图示](/Vue/img/lifePeriod.png "LifeCycle")
+
+## 侦听器
+
+### 基本示例
+
+计算属性允许我们声明性地计算衍生值。然而在有些情况下，我们需要在状态变化时执行一些“副作用”：例如更改 DOM，或是根据异步操作的结果去修改另一处的状态。
+
+```vue
+<script setup>
+    import { ref, watch } from 'vue'
+
+    const question = 'ref'
+    const answer = ref('Question usually contain a question mark. ;-)')
+    const loading = ref(false)
+
+    watch(question, async (newQuestion, oldQuestion) => {
+        if (newQuestion.include('?')) {
+            loading.value = true
+            answer.value = 'Thinking...'
+            try {
+                const res = await fetch('https://yesno.wtf/api')
+                answer.value = (await res.json(()).answer)
+            } catch (error) {
+                answer.value = 'Error! Could not reach the API. ' + error
+            } finally {
+                loading.value = false
+            }
+        }
+    })
+</script>
+
+<template>
+    <p>
+        Ask you a yes/no question:
+        <input v-model="question" :disabled="loading" />
+    </p>
+    <p>{{ answer }}</p>
+</template>
+```
+
+### 侦听的数据源类型
+
+watch的第一个参数类型可以是不同的“数据源”：它可以是一个ref（包括计算属性）、一个响应式对象、一个getter函数、或多个数据源组成的数组：
+
+```js
+const x = ref(0)
+const y = ref(0)
+
+// 单个ref
+watch(x, (newX) => {
+    console.log(`x is ${newX}`)
+})
+
+// getter函数
+watch(
+    () => x.value + y.value,
+    (sum) => {
+        console.log(`sum of x + y is: ${sum}`)
+    }
+)
+
+// 多个来源组成的数组
+watch([x, () => y.value], ([newX, newY]) => {
+    console.log(`x is ${newX} and y is ${newY}`)
+})
+```
+
+## 模板引用
+
+虽然 Vue 的声明性渲染模型为你抽象了大部分对 DOM 的直接操作，但在某些情况下，我们仍然需要直接访问底层 DOM 元素。要实现这一点，我们可以使用特殊的 ref attribute：
+
+`<input ref="input">`
+
+ref 是一个特殊的 attribute，和 v-for 章节中提到的 key 类似。它允许我们在一个特定的 DOM 元素或子组件实例被挂载后，获得对它的直接引用。这可能很有用，比如说在组件挂载时将焦点设置到一个 input 元素上，或在一个元素上初始化一个第三方库。
+
+### 访问模板引用
+
+为了通过组合式 API 获得该模板引用，我们需要声明一个匹配模板 ref attribute 值的 ref：
+
+```vue
+<script setup>
+    import { ref, onMounted } from 'vue'
+
+    // 声明一个ref来存放该元素的引用
+    // 必须和模板里的ref同名
+
+    const input = ref(null)
+    onMounted(() => {
+        input.value.focus()
+    }) 
+</script>
+
+<template>
+    <input ref="input" />
+</template>
+```
+
+注意，你只可以在组件挂载后才能访问模板引用。如果你想在模板中的表达式上访问 input，在初次渲染时会是 null。这是因为在初次渲染前这个元素还不存在呢！
+
+### 函数模板引用
+
+除了使用字符串值作名字，ref attribute 还可以绑定为一个函数，会在每次组件更新时都被调用。该函数会收到元素引用作为其第一个参数：
+`<input :ref="(el) => { /* 将 el 赋值给一个数据属性或者 ref 变量*/} "`
+注意我们这里需要使用动态的 :ref 绑定才能够传入一个函数。当绑定的元素被卸载时，函数也会被调用一次，此时的 el 参数会是 null。你当然也可以绑定一个组件方法而不是内联函数。
+
+### 组件上的ref
+
+模板引用也可以被用在一个子组件上。这种情况下引用中获得的值是组件实例：
+
+```vue
+<script setup>
+    import { ref, onMounted } form 'vue'
+    import Child from './Child.vue'
+
+    const child = ref(null)
+
+    onMounted(() => {
+        // child.value 是 <Child /> 组件的实例
+    })
+</script>
+
+<template>
+    <Child ref="child" />
+</template>
+```
+
+如果一个子组件使用的是选项式 API 或没有使用 <script setup\>，被引用的组件实例和该子组件的 this 完全一致，这意味着父组件对子组件的每一个属性和方法都有完全的访问权。这使得在父组件和子组件之间创建紧密耦合的实现细节变得很容易，当然也因此，应该只在绝对需要时才使用组件引用。大多数情况下，你应该首先使用标准的 props 和 emit 接口来实现父子组件交互。
