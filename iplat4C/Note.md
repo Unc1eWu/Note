@@ -16,7 +16,7 @@
 ## 数据源
 
 到对应模块下新增数据源，并在后端编写对应服务，在填写数据时填入对应service名称。
-![新增数据源](Note/iplat4C/img/e6c8239364d847b4fdae88fde4dfe5a.png "数据源")
+![新增数据源](/iplat4C/img/e6c8239364d847b4fdae88fde4dfe5a.png "数据源")
 
 ## 画面布局
 
