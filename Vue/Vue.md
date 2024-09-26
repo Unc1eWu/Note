@@ -69,6 +69,14 @@
   - [组件基础](#组件基础)
     - [定义一个组件](#定义一个组件)
     - [使用组件](#使用组件)
+    - [传递props](#传递props)
+    - [组件基础-监听事件](#组件基础-监听事件)
+    - [通过插槽(Slot)来分配内容](#通过插槽slot来分配内容)
+    - [动态组件](#动态组件)
+    - [DOM内模板解析注意事项](#dom内模板解析注意事项)
+      - [大小写区分](#大小写区分)
+      - [闭合标签](#闭合标签)
+      - [元素位置限制](#元素位置限制)
 
 ## 什么是Vue
 
@@ -965,5 +973,247 @@ ref 是一个特殊的 attribute，和 v-for 章节中提到的 key 类似。它
 要使用一个子组件，我们需要在父组件中导入它。假设我们把计数器组件放在了一个叫做ButtonCounter.vue的文件中，这个组件将会以默认导出的形式被暴露给外部。
 
 ```vue
+<script setup>
+    import ButtonCounter from './ButtonCounter.Vue'
+</script>
 
+<template>
+    <h1>Here is a child component!</h1>
+    <ButtonCounter />
+</template>
+```
+
+通过`<script setup>`,导入的组件都在模板中直接可用
+
+组件可以被重用任意多次：
+
+```template
+<h1>Here is a child component!</h1>
+<ButtonCounter />
+<ButtonCounter />
+<ButtonCounter />
+```
+
+每当点击这些按钮的时候，每一个组件都维护着自己的状态，是不同的count。这是因为当你每使用一个组件的时候就创建了新的一个实例。
+
+### 传递props
+
+如果我们正在构建一个博客，我们可能需要一个表示博客文章的组件。我们希望所有的博客文章分享相同的视觉布局，但有不同的内容。要实现这样的效果自然必须向组件中传递数据，例如每篇文章标题和内容，这就会使用到 props。
+
+Props是一种特殊的attributes，你可以在组件上声明注册。要传递给博客文章组件一个标题，我们必须在组件的 props 列表上声明它。这里要用到 defineProps 宏：
+
+```vue
+<script setup>
+    defineProps(['title'])
+</script>
+
+<template>
+    <h4>{{ title }}</h4>
+</template>
+```
+
+defineProps 是一个仅 `<script setup>` 中可用的编译宏命令，并不需要显式地导入。声明的 props 会自动暴露给模板。defineProps 会返回一个对象，其中包含了可以传递给组件的所有 props：
+
+```js
+const props = defineProps(['title'])
+console.log(props.title)
+```
+
+一个组件可以有任意多的props，默认情况下，props接受任意类型的值
+当一个props被注册后，可以像如下这样自定义attribute的值传递给它：
+
+```template
+<BlogPost title="My journey with Vue" />
+<BlogPost title="Blogging with Vue" />
+<BlogPost title="Why Vue is so fun" />
+```
+
+在实际应用中，我们可能在父组件中会有如下的一个博客文章数组：
+
+```js
+const posts = ref([
+    {id: 1, title: 'My journey with Vue'},
+    {id: 2, title: 'Blogging with Vue'},
+    {id: 3, title: 'Why Vue is so fun'}
+])
+```
+
+在这种情况下我们可以使用v-for来渲染他们：
+
+```template
+<BlogPost
+    v-for="post in posts"
+    :key="post.id"
+    :title="post.title"
+/>
+```
+
+### 组件基础-监听事件
+
+有时子组件需要与父组件进行交互。例如，实现无障碍访问功能，将博客文章的字体放大，而页面其余部分仍使用默认字号。
+
+在父组件中，我们可以添加一个postFontSize ref来实现这个效果：
+
+```js
+const posts = ref([
+    /* ... */
+])
+
+const postFontSize = ref(1)
+```
+
+在模板中用它来控制博客文章字体的大小：
+
+```vue
+<div :style="{ fontSize: postFontSize + `em` }">
+    <BlogPost
+        v-for:"post in posts"
+        :key="post.id"
+        :title="post.title"
+    />
+</div>
+```
+
+然后给BlogPost组件添加一个按钮：
+
+```vue
+<template>
+    <div class="BlogPost">
+        <h4>{{ title }}</h4>
+        <button>Enlarge text</button>
+    </div>
+</template>
+```
+
+这个按钮目前还没有做任何事情，我们想要点击这个按钮来告诉父组件它应该放大所有博客文章的文字。要解决这个问题，组件实例提供了一个自定义事件系统。父组件可以通过 v-on 或 @ 来选择性地监听子组件上抛的事件，就像监听原生 DOM 事件那样:
+
+```template
+<BlogPost
+    ...
+    @enlarge-text="postFontSize += 0.1"
+/>
+```
+
+子组件可以通过调用内置的 $emit 方法，通过传入事件名称来抛出一个事件：
+
+```vue
+<!-- BlogPost.vue, 省略了 <script> -->
+<template>
+  <div class="blog-post">
+    <h4>{{ title }}</h4>
+    <button @click="$emit('enlarge-text')">Enlarge text</button>
+  </div>
+</template>
+```
+
+因为有了 @enlarge-text="postFontSize += 0.1" 的监听，父组件会接收这一事件，从而更新 postFontSize 的值。
+
+我们可以通过 defineEmits 宏来声明需要抛出的事件：
+
+```vue
+<script setup>
+    defineProps(['title'])
+    defineEmits(['enlarge-text'])
+</script>
+```
+
+### 通过插槽(Slot)来分配内容
+
+一些情况下我们希望能和HTML元素一样向组件中传递内容:
+
+```template
+<AlertBox>
+    Something bad happened
+</AlertBox>
+```
+
+可以通过Vue的自定义slot元素完成：
+
+```vue
+<!-- AlertBox.vue -->
+<template>
+  <div class="alert-box">
+    <strong>This is an Error for Demo Purposes</strong>
+    <slot />
+  </div>
+</template>
+
+<style scoped>
+.alert-box {
+  /* ... */
+}
+</style>
+```
+
+### 动态组件
+
+有些场景会需要在两个组件间来回切换，比如Tab界面：
+
+```template
+<component :is"tabs[currentTab]"></component>
+```
+
+在上面的例子中，被传给:is的值可以是以下几种：
+
+- 被注册的组件名
+- 导入的组件对象
+
+你也可以使用 is attribute 来创建一般的 HTML 元素。
+
+当使用 `<component :is="...">` 来在多个组件间作切换时，被切换掉的组件会被卸载。我们可以通过 `<KeepAlive>` 组件强制被切换掉的组件仍然保持“存活”的状态。
+
+### DOM内模板解析注意事项
+
+如果你想在 DOM 中直接书写 Vue 模板，Vue 则必须从 DOM 中获取模板字符串。由于浏览器的原生 HTML 解析行为限制，有一些需要注意的事项。
+
+#### 大小写区分
+
+HTML 标签和属性名称是不分大小写的，所以浏览器会把任何大写的字符解释为小写。这意味着当你使用 DOM 内的模板时，无论是 PascalCase 形式的组件名称、camelCase 形式的 prop 名称还是 v-on 的事件名称，都需要转换为相应等价的 kebab-case (短横线连字符) 形式
+
+```js
+const BlogPost = {
+    props: ['postTitle'],
+    emits: ['updatePost'],
+    template: `
+        <h3>{{ postTitle }}</h3>
+    `
+}
+```
+
+```template
+<blog-post post-title="hello!" @update-post="onUpdatePost"></blog-post>
+```
+
+#### 闭合标签
+
+我们在上面的例子中已经使用过了闭合标签 (self-closing tag)：
+
+`<MyComponent />`
+
+这是因为 Vue 的模板解析器支持任意标签使用 /> 作为标签关闭的标志。
+
+然而在 DOM 内模板中，我们必须显式地写出关闭标签：
+
+`<my-component></my-component>`
+
+由于HTML只允许一小部分特殊的元素省略其关闭标签，像input和img。对于其他的元素如果省略了关闭标签，原生的HTML解析器会认为开启的标签永远没有结束。
+
+#### 元素位置限制
+
+某些HTML元素对于放在其中的元素类型有限制，例如ul,ol,,table和select，相应的，某些元素仅在放置于特定元素中时才会显示，例如li，tr，和option。
+
+这将导致在使用带有此类限制元素的组件时出现问题。例如：
+
+```vue
+<table>
+  <blog-post-row></blog-post-row>
+</table>
+```
+
+自定义的组件 `<blog-post-row>` 将作为无效的内容被忽略，因而在最终呈现的输出中造成错误。我们可以使用特殊的 is attribute 作为一种解决方案：
+
+```vue
+<table>
+  <tr is="vue:blog-post-row"></tr>
+</table>
 ```
