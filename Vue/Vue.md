@@ -80,7 +80,7 @@
 
 ## 什么是Vue
 
-Vue是一款构建用户界面的JavaScript框架，基于标准JavaSc，HTML和CSS构建，并提供了一套声明式、组件化的编程模型。
+Vue是一款构建用户界面的JavaScript框架，基于标准JavaScript，HTML和CSS构建，并提供了一套声明式、组件化的编程模型。
 
 ### Vue的核心功能
 
