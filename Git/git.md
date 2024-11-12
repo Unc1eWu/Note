@@ -97,3 +97,7 @@ git fetch从远程repo拉取最新的提交历史，但是不会对当前的本�
 ### git pull
 
 git pull命令是将git fetch和git merge结合在一起。这能够让你从远端仓库拉取（fetch）变更并自动应用到当前的本地分支上。
+
+## 能通过ssh连接到/git@github.com但是git clone会permission denied
+
+[git权限被拒绝（已添加public key）](https://blog.csdn.net/qq_41970098/article/details/118884304)
