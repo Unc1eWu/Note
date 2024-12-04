@@ -82,3 +82,19 @@ Visual Studio采用.sln的文件类型来储存解决方案设置。将项目、
 `http://localhost:5173/XGYMREC1SB?formName=XGYMREC1SBFG`
 
 端口号后为母画面代码然后使用?formName=拼接子画面代码进行访问
+
+## 后台查询服务编写
+
+```c++
+CDbCommand comm_inq(conn);
+    CString sql = " SELECT * FROM TQMREPKG WHERE SAMPLE_STATUS = 'Y'";
+    comm_inq.SetCommandText(sql);
+    affectRow = comm_inq.ExecuteQuery(bcls_ret->Tables[0]);
+    bcls_ret->Tables[0].set_TableName("TQMREPKG");
+    comm_inq.Close();
+    sprintf(s.msg, "查询成功！" );
+```
+
+comm_inq.SetCommandText(sql)方法将需要查询的sql语句传入
+后面的comm_inq.ExecuteQuery则是执行sql语句
+然后将查询的数据放入一个表中给表命名，需要注意此时前端mergeDataToGrid中的表名要与后台服务中的表名相同。
