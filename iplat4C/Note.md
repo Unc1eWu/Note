@@ -98,3 +98,7 @@ CDbCommand comm_inq(conn);
 comm_inq.SetCommandText(sql)方法将需要查询的sql语句传入
 后面的comm_inq.ExecuteQuery则是执行sql语句
 然后将查询的数据放入一个表中给表命名，需要注意此时前端mergeDataToGrid中的表名要与后台服务中的表名相同。
+
+## 问题XGYMREYKHJ
+
+该画面mergeDataToGrid无法正常显示，后发现客户端低代码配置中LayoutGroupFilter数据集配置未正确。
