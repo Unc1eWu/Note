@@ -1,0 +1,79 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Vue</title>
+    <script src="https://unpkg.com/vue@3.0.2"></script> 
+
+    <style>
+        /* .box {
+            width: 100px 0;
+            height: 400px;
+            text-align: center;
+            background-color: red;
+            margin: 20px;
+            display: inline-block;
+        } */
+         body{
+            background: #eee;
+            max-width: 960px;
+            margin: 20px auto;
+         }
+
+         p, h3, ul{
+             margin: 0;
+             padding: 0;
+         }
+
+         li{
+            list-style-type: none;
+            background: #fff;
+            margin: 20px auto;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+         }
+
+         li.fav{
+            background: #ff9ed2;
+            color: white;
+         }
+    </style>
+</head>
+<body>
+    <h1>Hello, Vue :)</h1>
+    
+    <div id="app">
+        <!-- <p>{{ filteredBooks }}</p> -->
+        <div v-if="showBooks" >
+           <ul>
+            <li v-for="book in filteredBooks" v-bind:class="{ fav: book.isFav}" @click="toogleFav(book)">
+                <h3>{{ book.title }}</h3>
+                <p>{{ book.author }}</p>
+            </li>
+           </ul>
+        </div>
+        <!-- <button @click="age++">Increase Age</button>
+        <button @click="age--">Decrease Age</button>
+        <button v-on:click="changeTitle('Oathbringer')">Change Title</button> -->
+        <button @click="toggleShowBooks">
+            <span v-if="showBooks">Hide Books</span>
+            <span v-else>Show Books</span>
+        </button>
+         <!-- v-show is using css rendering, so it is not removing the element from the DOM and is not time consuming, while v-if is adding and removing components from the DOM which is much time consuming  -->
+
+        <!-- <div v-show="showBooks">currently showing books</div> -->
+
+        <!-- mouse events -->
+        <br>
+        <div class="box" @mouseover="handleEvent($event, 5)">mouser over (enter)</div>
+        <div class="box" @mouseleave="handleEvent">mouseleave</div>
+        <div class="box" v-on:dblclick="handleEvent">double click</div>
+        <div class="box" @mousemove="handleMousemove">position - {{ x }} {{ y }}</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
