@@ -102,3 +102,7 @@ comm_inq.SetCommandText(sql)方法将需要查询的sql语句传入
 ## 问题XGYMREYKHJ
 
 该画面mergeDataToGrid无法正常显示，后发现客户端低代码配置中LayoutGroupFilter数据集配置未正确。
+
+## 问题后台获取到表信息后前台grid中数据没有绑定上去
+
+浏览器开发者工具调试看获取到的数据table名称是否和后端代码table名称相同
