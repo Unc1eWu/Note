@@ -716,7 +716,7 @@ function say(message) {
 }
 
 <button @click="say('hello')">Say hello</button>
-<button @click="say('byt')">Say bye</button>
+<button @click="say('bye')">Say bye</button>
 ```
 
 ### 事件修饰符
