@@ -251,3 +251,119 @@ SELECT column1, column2, ...
 FROM table1
 RIGHT JOIN table2 on table1.column_name = table2.column_name;
 ```
+
+## SQL 高级教程
+
+### SQL IN
+
+```SQL
+SELECT columm1, column2, ...
+FORM table_name
+WHERE column IN (value1, value2, ...);
+```
+
+IN操作符允许我们在WHERE子句中规定多个值
+
+### SQL BETWEEN
+
+BETWEEN操作符选取介于两个值之间的数据范围内的值，这些值可以是数值、文本或者日期
+
+```SQL
+SELECT column1, column2, ...
+FROM table_name
+WHERE column BETWEEN value1 AND value2;
+```
+
+### SQL连接(JOIN)
+
+SQL join 用于把来自两个或多个表的行结合起来
+
+- INNER JOIN 返回两个表中满足连接条件的记录（交集）。
+- LEFT JOIN 返回左表中的所有记录，即使右表中没有匹配的记录（保留左表）。
+- RIGHT JOIN 返回右表中的所有记录，即使左表中没有匹配的记录（保留右表）。
+- FULL OUTER JOIN 返回两个表的并集，包含匹配和不匹配的记录。
+- CROSS JOIN 返回两个表的笛卡尔积，每条左表记录与每条右表记录进行组合。
+- SELF JOIN 将一个表与自身连接。
+- NATURAL JOIN 基于同名字段自动匹配连接的表。
+
+#### SQL LEFT JOIN
+
+```SQL
+SELECT Customers.Name, Orders.Product
+FROM Customers
+LEFT JOIN Orders
+ON Customers.CustomerID = Orders.CustomerID;
+```
+
+### SQL 约束（Constraint）
+
+SQL约束用于规定表中的数据规则
+如果存在违反约束二点数据行为，行为会被约束终止
+
+```SQL
+CREATE TABLE table_name
+(
+    column_name1 data_type(size) constraint_name,
+    column_name2 data_type(size) constraint_name,
+    column_name3 data_type(size) constraint_name,
+    ...
+);
+```
+
+在SQL中，有如下约束：
+
+- NOT NULL - 指示某列不能储存NULL值
+- UNIQUE - 保证某列的每行必须有唯一的值
+- PRIMARY KEY - NOT NULL 和 UNIQUE 的结合。确保某列有唯一标识，有助于更容易更快速地找到表中的一个特定的记录。
+- FOREIGN KEY - 保证一个表中的数据匹配另一个表中的值得参照完整性
+- CHECK - 保证列中的值符合指定得条件
+- DEFAULT - 规定没有给列赋值时得默认值
+- INDEX - 用于快速访问数据库表中得数据。
+
+```SQL
+-- NOT NULL
+CREATE TABLE Students (
+    StudentID INT NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    FirstName VARCHAR(50),
+    Age INT
+);
+
+-- UNIQUE
+CREATE TABLE Employees (
+    EmployeeID INT NOT NULL UNIQUE,
+    LastName VARCHAR(50) NOT NULL,
+    FirstName VARCHAR(50),
+    Email VARCHAR(100) UNIQUE
+);
+
+-- PRIMARY KEY
+CREATE TABLE Orders (
+    OrderID INT NOT NULL PRIMARY KEY,
+    OrderNumber INT NOT NULL,
+    OrderDate DATE NOT NULL
+);
+
+-- FOREIGN KEY 确保一个表中的值匹配另一个表中的值，从而建立两表之间的关系
+CREATE TABLE Orders (
+    OrderID INT NOT NULL PRIMARY KEY,
+    OrderNumber INT NOT NULL,
+    CustomerID INT,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+```
+
+### SQL FOREIGN KEY 约束
+
+一个表中的FOREIGN KEY 指向另一个表中的UNIQUE KEY（唯一约束的键）
+
+```SQL
+CREATE TABLE Orders
+(
+    O_ID INT NOT NULL,
+    OrderNo INT NOT NULL,
+    P_ID int,
+    PRIMARY KEY (O_ID),
+    FOREIGN KEY (P_ID) REFERENCES Persons(P_ID)
+);
+```
